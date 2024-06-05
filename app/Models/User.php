@@ -27,6 +27,9 @@ class User extends Authenticatable
         'nik',
         'phone',
         'balance',
+        'is_suspended',
+        'report_count',
+        'trust_score',
 
         'username',
         'password',

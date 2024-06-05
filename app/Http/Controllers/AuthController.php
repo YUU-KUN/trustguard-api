@@ -10,9 +10,11 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function register(LoginRequest $request)
+    public function register(Request $request)
     {
         $input = $request->all();
+
+        return Hash::make( $input['password'] );
 
         $validated = $request->validated();
 
@@ -58,6 +60,15 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Username atau password salah'
+            ], 401);
+        }
+        if ($user->is_suspended) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun anda terblokir',
+                'data' => [
+                    'user' => $user
+                ]
             ], 401);
         }
 

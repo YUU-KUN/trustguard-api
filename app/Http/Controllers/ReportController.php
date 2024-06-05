@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Report;
+use App\Models\UserBank;
 use App\Models\ReportEvidence;
 use Illuminate\Http\Request;
 use Auth;
@@ -45,14 +46,56 @@ class ReportController extends Controller
     {
         try {
             $input = $request->all();
-            $input['user_id'] = Auth::user()->id;
-
-            // $validated = $request->validate([
-            //     'title' => 'required',
-            // ])
-    
             
+            $validator = \Validator::make($input, [
+                'suspect_account_name' => 'required',
+                'bank_id' => "required|exists:banks,id",
+                'suspect_account_name' => "required",
+                'suspect_account_number' => "required|numeric",
+                'suspect_phone' => "required|numeric",
+                
+                'platform_id' => "required|exists:platforms,id",
+                'product_category_id' => "required|exists:product_categories,id",
+                'chronology' => "required",
+                'loss_amount' => "required|numeric",
+                
+                'reporter_name' => "required|max:255",
+                'identity' => "required|in:ktp,sim.passport",
+                'identity_number' => "required|numeric",
+                'reporter_phone' => "required|numeric",
+                'evidences' => 'required|array',
+                // 'evidences.*' => 'required|mimes:png,jpg,jpeg,pdf|max:2048'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()
+                ], 404);
+            }
+
+            $input['user_id'] = Auth::user()->id;    
             $report = Report::create($input);
+            $userbank = UserBank::where([
+                ['account_name', 'like', '%' . $input['suspect_account_name'] . '%'],
+                ['rekening_number', $input['suspect_account_number']],
+            ])->first();
+
+
+            $userbank->update([
+                'is_reported' => true,
+            ]);
+
+            $userbank->User->update([
+                'report_count' => $userbank->User->report_count + 1,
+                'trust_score' => $userbank->User->trust_score - 5,
+            ]);
+
+            $userbank->User->report_count >= 3 && $userbank->User->update([
+                'is_suspended' => true,
+            ]);
+
+
             if ($report) {
                 foreach ($input['evidences'] as $evidence) {
                     $evidence_filename = time().'.'.$evidence->extension();

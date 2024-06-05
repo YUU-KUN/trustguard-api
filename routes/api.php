@@ -31,10 +31,13 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('profile', [AuthController::class, 'getProfile']);
     Route::resource('report', ReportController::class);
     
-    // 
+    // Transaction
     Route::get('transaction', [TransactionController::class, 'getTransactions']);
     Route::get('transaction/{transaction_id}', [TransactionController::class, 'getTransactionDetail']);
     Route::get('available-fraud-transaction', [TransactionController::class, 'checkAvailableFraudTransaction']);
+
+    // Check Fraud
+    Route::post('check-fraud', [TransactionController::class, 'checkFraud']);
 
     Route::get('user-bank', [TransactionController::class, 'getUserBank']);
     Route::get('last-transfer', [TransactionController::class, 'getLastTransfer']);
