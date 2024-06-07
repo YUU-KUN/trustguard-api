@@ -41,7 +41,7 @@ class TransactionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Berhasil mendapatkan data bank pengguna',
-            'data' => $user_bank->load('Bank:id,name', 'User:id,firstname,lastname,trust_score')
+            'data' => $user_bank->load('Bank:id,name', 'User:id,firstname,lastname,trust_score,phone')
         ], 200);
     }
 
